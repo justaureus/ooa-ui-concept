@@ -33,24 +33,32 @@
             width: 600px;
             height: 600px;
             border-radius: 50%;
+        }
+
+        .segment {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 600px;
+            height: 600px;
+            transform-origin: center;
             clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+            cursor: pointer;
         }
 
         .tech {
             background-color: #313249;
-            transform: rotate(-60deg);
+            transform: translate(-50%, -50%) rotate(-60deg);
         }
 
         .hardware {
             background-color: #424141;
-            clip-path: polygon(50% 50%, 100% 100%, 0 100%);
-            transform: rotate(60deg);
+            transform: translate(-50%, -50%) rotate(60deg);
         }
 
         .body {
             background-color: #49241e;
-            clip-path: polygon(50% 50%, 0 100%, 0 0);
-            transform: rotate(180deg);
+            transform: translate(-50%, -50%) rotate(180deg);
         }
 
         .ring {
@@ -97,6 +105,7 @@
 
         .diamond.clicked {
             border: 2px solid #8fffed;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -108,9 +117,9 @@
     <div class="ring" data-level="20"></div>
     <div class="ring" data-level="25"></div>
 
-    <div class="tech" data-section="TECH"></div>
-    <div class="hardware" data-section="HARDWARE"></div>
-    <div class="body" data-section="BODY"></div>
+    <div class="circle segment tech" data-section="TECH"></div>
+    <div class="circle segment hardware" data-section="HARDWARE"></div>
+    <div class="circle segment body" data-section="BODY"></div>
 
     <div class="upgrades">UPGRADES: <span id="upgrades">125</span></div>
 
@@ -120,10 +129,37 @@
 <script>
     const upgradesElement = document.getElementById('upgrades');
     let upgrades = 125;
+    let points = { BODY: 0, TECH: 0, HARDWARE: 0 };
+
+    document.querySelectorAll('.segment').forEach(segment => {
+        segment.addEventListener('click', () => {
+            const section = segment.dataset.section;
+            if (upgrades > 0) {
+                points[section]++;
+                upgrades--;
+                upgradesElement.textContent = upgrades;
+                updateDiamonds(points.BODY, points.TECH, points.HARDWARE);
+            } else {
+                upgradesElement.classList.add('shake');
+                setTimeout(() => upgradesElement.classList.remove('shake'), 500);
+            }
+        });
+
+        segment.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const section = segment.dataset.section;
+            if (points[section] > 0) {
+                points[section]--;
+                upgrades++;
+                upgradesElement.textContent = upgrades;
+                updateDiamonds(points.BODY, points.TECH, points.HARDWARE);
+            }
+        });
+    });
 
     document.querySelectorAll('.diamond').forEach(diamond => {
         diamond.addEventListener('click', () => {
-            if (upgrades > 0 && diamond.classList.contains('active')) {
+            if (!diamond.classList.contains('clicked') && diamond.classList.contains('active')) {
                 diamond.classList.add('clicked');
                 upgrades--;
                 upgradesElement.textContent = upgrades;
@@ -148,7 +184,7 @@
         });
     }
 
-    updateDiamonds(10, 5, 0);
+    updateDiamonds(0, 0, 0);
 </script>
 </body>
 </html>
